@@ -1,12 +1,28 @@
 import { format, formatDistanceToNow } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
-import { useState } from 'react';
+import { ChangeEvent, FormEvent, InvalidEvent, useState } from 'react';
 
 import { Avatar } from './Avatar';
 import { Comment } from './Comment';
 import styles from './Post.module.css';
 
-export function Post({author, content, publishedAt}) {
+interface Author {
+  name: string;
+  role: string;
+  avatarUrl: string;
+}
+
+interface Content {
+  type: string;
+  content: string;
+}
+interface PostProps {
+  author: Author;
+  publishedAt: Date;
+  content: Content[];
+}
+
+export function Post({author, content, publishedAt}: PostProps) {
   
   const [comments, setComments] = useState(['Um novo post'])
 
@@ -20,23 +36,23 @@ export function Post({author, content, publishedAt}) {
     locale: ptBR
     })
 
-    function handleCreateNewComment(e) {
+    function handleCreateNewComment(e: FormEvent) {
       e.preventDefault()
 
       setComments([...comments, newCommentText])
       setNewCommentText('')
     }
 
-    function handleNewCommentChange(e) {
-      event.target.setCustomValidity('')
+    function handleNewCommentChange(e: ChangeEvent<HTMLTextAreaElement>) {
+      e.target.setCustomValidity('')
       setNewCommentText(e.target.value)
     }
 
-    function handleNewCommentInvalid(e) {
+    function handleNewCommentInvalid(e: InvalidEvent<HTMLTextAreaElement>) {
       e.target.setCustomValidity('Esse campo é obrigatório')
     }
 
-    function deleteComment(commentToDelete) {
+    function deleteComment(commentToDelete: string) {
       const commentsWithoutDeletedOne = comments.filter(comment => {
         return comment !== commentToDelete
       })
@@ -61,14 +77,11 @@ export function Post({author, content, publishedAt}) {
       </header>
 
       <div className={styles.content}>
-      {content.map((item) => {
-            switch (item.type) {
-              case 'paragraph':
-                return <p key={item.id}>{item.content}</p>;
-              case 'link':
-                return <p key={item.id}><a href={item.content} target="_blank">{item.content}</a></p>;
-              default:
-                return null;
+      {content.map((line) => {
+            if (line.type === 'paragraph') {
+              return <p>{line.content}</p>
+            } else if (line.type === 'link') {
+              return <a href={line.content}>{line.content}</a>
             }
           })}
       </div>
